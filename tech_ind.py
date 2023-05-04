@@ -50,9 +50,8 @@ def lobbyingValues(data, symbol):
 
     df = data.copy()
     symbolLobbies = df.loc[symbol]
-    lobbyingValueBins= df.qcut(symbolLobbies, 5)
 
-    return lobbyingValueBins
+    return symbolLobbies
 
 
 
