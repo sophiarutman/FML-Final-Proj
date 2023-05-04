@@ -77,9 +77,12 @@ class DataScraping:
 
 if __name__ == "__main__":
 
-    train_start, train_end = "2018-01-01", "2020-12-31"
+    #train_start, train_end = "2018-01-01", "2020-12-31"
+    #test_start, test_end = "2021-01-01", "2022-12-31"
 
-    scraper = DataScraping(train_start, train_end)
+    start, end = "2018-01-01", "2022-12-31"
+
+    scraper = DataScraping(start, end)
 
     symbol = "AMZN"
     url = "https://www.quiverquant.com/lobbyingsearch/ticker/AMZN?searchticker=AMZN"
@@ -121,11 +124,9 @@ if __name__ == "__main__":
     url = "https://www.quiverquant.com/lobbyingsearch/ticker/ABT?searchticker=ABT"
     result = scraper.scrape_lobbying_history(symbol, url)
 
-    print(result.to_string())
-
-    filepath = Path('./FML-Final-Proj/lobbying.csv')  
-    filepath.parent.mkdir(parents=True, exist_ok=True)  
-    result.to_csv(filepath)  
+    #filepath = Path('./FML-Final-Proj/lobbying.csv')  
+    #filepath.parent.mkdir(parents=True, exist_ok=True)  
+    #result.to_csv(filepath)  
 
   
-    #test_start, test_end = "2021-01-01", "2022-12-31"
+    
