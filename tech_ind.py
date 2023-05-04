@@ -32,21 +32,6 @@ def MACDIndicator(data, symbol):
     df['MACD'] = df['EMA8'] - df['EMA26']
     return df
 
-def BBIndicator(data, symbol):
-    df = data.copy()
-    df['SMA15'] = df[symbol].rolling(window=20).mean()
-    stdev = df['SMA15'].std()
-    df['Upper'] = df['SMA15'] + stdev
-    df['Lower'] = df['SMA15'] - stdev 
-    df['BB'] = ((df[symbol] - df['Lower']) / (df['Upper'] - df['Lower'])) * 100
-    return df 
-
-
-def EMAIndicator(data, symbol):
-    df = data.copy()
-    df['EMA16'] = df[symbol].ewm(8).mean()
-    df['EMA50'] = df[symbol].ewm(50).mean()
-    return df
 
 def RSIIndicator(data, symbol):
     df = data.copy()
@@ -60,6 +45,15 @@ def RSIIndicator(data, symbol):
     df["RSI"] = 100 - (100 / (1 + df["RS"]))
 
     return df
+
+def lobbyingValues(data, symbol): 
+
+    df = data.copy()
+    symbolLobbies = df.loc[symbol]
+    lobbyingValueBins= df.qcut(symbolLobbies, 5)
+
+    return lobbyingValueBins
+
 
 
 
