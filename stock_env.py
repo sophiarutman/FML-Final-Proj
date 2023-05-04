@@ -19,22 +19,17 @@ class StockEnvironment:
         Read the relevant price data and calculate some indicators.
         Return a DataFrame containing everything you need.
         """
-
         dates = pd.date_range(start_date, end_date)
         df = pd.DataFrame(index=dates)
         df_symbol = pd.read_csv(f'{data_folder}/' + symbol + '.csv', index_col=['Date'], parse_dates=True, na_values=['nan'], usecols=['Date',"Adj Close"])
         df = df.join(df_symbol, how="inner")
         df = df.rename(columns={"Adj Close": symbol})
         df = tech_ind.MACDIndicator(df, symbol)
-        df = tech_ind.BBIndicator(df, symbol)
-        df = tech_ind.EMAIndicator(df, symbol)
         df = tech_ind.RSIIndicator(df, symbol)
-        df["deltEMA"] = df["EMA16"] - df["EMA50"]
-        df = df[[symbol, "MACD", "RSI", "BB", "deltEMA"]]
+        #insert indicator for Lobbying Data
+        df = df[[symbol, "MACD", "RSI"]]
         df["RSIQuantile"] = pd.qcut(df["RSI"], 4,labels=["0", "1", "2", "3"])
         df["MACDQuantile"] = pd.qcut(df["MACD"], 4, labels=["0", "1", "2", "3"])
-        df["EMAQuantile"] = pd.qcut(df["deltEMA"], 4, labels=["0", "1", "2", "3"])
-        df["BBQuantile"] = pd.qcut(df["BB"], 4, labels=["0", "1", "2", "3"])
         self.df = df
         df = df.ffill().bfill()
         return df
@@ -42,16 +37,15 @@ class StockEnvironment:
     def calc_state (self, df, day, holdings):
         """ Quantizes the state to a single number. """
         rsi = df.at[day, "RSIQuantile"]
-        bb = df.at[day, "BBQuantile"]
         macd = df.at[day, "MACDQuantile"]
-        emaX = df.at[day, "EMAQuantile"]
+        #insert indicator for Lobbying Data
         if holdings < 0:
             hold = "0"
         elif holdings > 0:
             hold = "2"
         else:
             hold = "1"
-        strnum = "1" + rsi + bb + macd + emaX + hold
+        strnum = "1" + rsi + macd + hold #add indicator
         state = int(strnum)
         return state
 
@@ -63,6 +57,7 @@ class StockEnvironment:
         Feel free to include portfolio stats or other information, but AT LEAST:
         Trip 499 net result: $13600.00
         """
+        #update number of states to reflect states
         self.QTrader = TabularQLearner(133333, 3, epsilon=eps, epsilon_decay=eps_decay, dyna=dyna)
         world_df = self.prepare_world(start, end, symbol, "./data")
         first_day = world_df.index[0]
