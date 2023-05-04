@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 import pandas as pd
-
+from pathlib import Path 
 
 class DataScraping:
 
@@ -122,6 +122,10 @@ if __name__ == "__main__":
     result = scraper.scrape_lobbying_history(symbol, url)
 
     print(result.to_string())
+
+    filepath = Path('./FML-Final-Proj/lobbying.csv')  
+    filepath.parent.mkdir(parents=True, exist_ok=True)  
+    result.to_csv(filepath)  
 
   
     #test_start, test_end = "2021-01-01", "2022-12-31"
