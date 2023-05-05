@@ -29,7 +29,6 @@ class IndicatorRetrieval:
 
     def main(self):
         data = self.get_data('2018-01-01','2022-12-31','AMZN')
-        print(data.to_string())
 
 
 #c = IndicatorRetrieval()
