@@ -1,14 +1,13 @@
 import pandas as pd
 import numpy as np
 
-def get_data( start, end, symbol, data_file="/Users/jsoeder/Library/CloudStorage/OneDrive-BowdoinCollege/Desktop/FML/FML-Final-Proj/lobbying.csv"):
+def get_data( start, end, symbol, data_file="./lobbying.csv"):
     # Construct an empty DataFrame with the requested date range.
     dates = pd.date_range(start, end)
     df = pd.DataFrame(index=dates)
 
     # Read SPY.
-    df_spy = pd.read_csv('/Users/jsoeder/Library/CloudStorage/OneDrive-BowdoinCollege/Desktop/FML/FML-Final-Proj/data/SPY.csv', 
-        index_col=['Date'], parse_dates=True, na_values=['nan'], usecols=['Date',"Adj Close"])
+    df_spy = pd.read_csv('./data/SPY.csv', index_col=['Date'], parse_dates=True, na_values=['nan'], usecols=['Date',"Adj Close"])
 
     # Use SPY to eliminate non-market days.
     df = df.join(df_spy, how='inner')

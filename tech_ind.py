@@ -47,12 +47,10 @@ def RSIIndicator(data, symbol):
 
     return df
 
-def LobbyingIndicator(data, symbol, window): 
+def LobbyingIndicator(data, lobData, symbol, window): 
 
     df = data.copy()
-    symbolLobbies = df.loc[symbol]
-    symbolLobbies = symbolLobbies.rolling(window=window)
-    df["Lobbying"] = symbolLobbies
+    df["Lobbying"] = lobData[symbol].rolling(window=window).mean()
     return df
 
 

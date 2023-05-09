@@ -32,7 +32,7 @@ class SearchEnvironment:
 
         #THIS IS NOT WORKING
         indicator_data = ir.get_data(start_date, end_date, symbol)
-        df = tech_ind.LobbyingIndicator(indicator_data, lobbyingWindow)
+        df = tech_ind.LobbyingIndicator(df, indicator_data, symbol, lobbyingWindow)
 
         #THIS IS NOT WORKING
         df = df[[symbol, "MACD", "RSI", "Lobbying"]]
