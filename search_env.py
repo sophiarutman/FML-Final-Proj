@@ -38,7 +38,9 @@ class SearchEnvironment:
         df = df[[symbol, "MACD", "RSI", "Lobbying"]]
         df["RSIQuantile"] = pd.qcut(df["RSI"], 4,labels=["0", "1", "2", "3"])
         df["MACDQuantile"] = pd.qcut(df["MACD"], 4, labels=["0", "1", "2", "3"])
-        df["Lobbying"] = pd.qcut(df["Lobbying"], 4, labels=["0", "1", "2", "3"])
+        df['Lobbying'].replace(to_replace=0, value=np.nan, inplace=True)
+        df["LobbyingQuantile"] = pd.qcut(df['Lobbying'], 3, labels=[ "1", "2", "3"])
+        df['LobbyingQuantile'].replace(to_replace=-1, value=0, inplace=True)
         self.df = df
         df = df.ffill().bfill()
         return df
