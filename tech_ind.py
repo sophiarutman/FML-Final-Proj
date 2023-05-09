@@ -52,8 +52,8 @@ def LobbyingIndicator(data, symbol, window):
     df = data.copy()
     symbolLobbies = df.loc[symbol]
     symbolLobbies = symbolLobbies.rolling(window=window)
-
-    return symbolLobbies
+    df["Lobbying"] = symbolLobbies
+    return df
 
 
 
