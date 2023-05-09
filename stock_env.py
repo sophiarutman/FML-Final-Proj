@@ -26,10 +26,12 @@ class StockEnvironment:
         df = df.rename(columns={"Adj Close": symbol})
         df = tech_ind.MACDIndicator(df, symbol)
         df = tech_ind.RSIIndicator(df, symbol)
+        df = tech_ind.Lobbying(df, symbol)
         #insert indicator for Lobbying Data
-        df = df[[symbol, "MACD", "RSI"]]
+        df = df[[symbol, "MACD", "RSI", "Lobbying"]]
         df["RSIQuantile"] = pd.qcut(df["RSI"], 4,labels=["0", "1", "2", "3"])
         df["MACDQuantile"] = pd.qcut(df["MACD"], 4, labels=["0", "1", "2", "3"])
+        df["Lobbying"] = pd.qcut(df["MACD"], 4, labels=["0", "1", "2", "3"])
         self.df = df
         df = df.ffill().bfill()
         return df
@@ -38,14 +40,14 @@ class StockEnvironment:
         """ Quantizes the state to a single number. """
         rsi = df.at[day, "RSIQuantile"]
         macd = df.at[day, "MACDQuantile"]
-        #insert indicator for Lobbying Data
+        lobbying = df.at[day, "Lobbying Quantile"]
         if holdings < 0:
             hold = "0"
         elif holdings > 0:
             hold = "2"
         else:
             hold = "1"
-        strnum = "1" + rsi + macd + hold #add indicator
+        strnum = "1" + rsi + macd + lobbying + hold 
         state = int(strnum)
         return state
 
@@ -117,6 +119,7 @@ class StockEnvironment:
                 if action == 0 and prev_holding < 0:
                     if price < prev_price:
                         reward += (prev_price - price) / 8000
+                        #why 8000?
                     else:
                         reward += (price - prev_price) / 8000
                 elif action == 2 and prev_holding > 0:

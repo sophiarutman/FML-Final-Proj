@@ -50,7 +50,9 @@ def lobbyingValues(data, symbol):
 
     df = data.copy()
     symbolLobbies = df.loc[symbol]
-    symbolLobbies = symbolLobbies.rolling(30).mean()
+    symbolLobbies = symbolLobbies.rolling(300).mean()
+    symbolLobbies.bfill().ffill()
+    #how to bin?
 
     return symbolLobbies
 
