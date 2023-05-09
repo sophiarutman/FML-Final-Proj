@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import IndicatorRetrieval as ir
 
 def get_data(start, end, symbols, column_name="Adj Close", include_spy=True, data_folder="./data"):
 
@@ -46,13 +47,11 @@ def RSIIndicator(data, symbol):
 
     return df
 
-def lobbyingValues(data, symbol): 
+def LobbyingIndicator(data, symbol, window): 
 
     df = data.copy()
     symbolLobbies = df.loc[symbol]
-    symbolLobbies = symbolLobbies.rolling(300).mean()
-    symbolLobbies.bfill().ffill()
-    #how to bin?
+    symbolLobbies = symbolLobbies.rolling(window=window)
 
     return symbolLobbies
 
@@ -67,8 +66,7 @@ if __name__ == "__main__":
     df = get_data(start, end, symbols)
     df_MACD = MACDIndicator(df)
     df_RSI = RSIIndicator(df)
-    df_EMA = EMAIndicator(df)
-    df_BB = BBIndicator(df)
+
 
 
     fig, ax = plt.subplots()
@@ -94,33 +92,3 @@ if __name__ == "__main__":
     fig.legend(["RSI", "DIS"])
     plt.show()
 
-
-    plt.figure(4)
-    plt.xlabel("Date")
-    plt.ylabel("Price")
-    plt.suptitle("Figure 3A: Bollinger Band Indicator")
-    plt.plot(df_BB['SMA15'])
-    plt.plot(df_BB['Upper'])
-    plt.plot(df_BB['Lower'])
-    plt.plot(df_BB['DIS'])
-    plt.legend(["SMA-15", "Upper", "Lower", "DIS"])
-    plt.show()
-
-    plt.figure(5)
-    plt.xlabel("Date")
-    plt.ylabel("Percent")
-    plt.suptitle("Figure 3B: Bollinger Band Percent")
-    plt.plot(df_BB['BB'])
-    plt.legend(["BB%"])
-    plt.show()
-    
-    plt.figure(6)
-    plt.xlabel("Date")
-    plt.ylabel("Price")
-    plt.suptitle("Figure 4: EMA-50 EMA-8 Crossover")
-    plt.plot(df_EMA['EMA50'])
-    plt.plot(df_EMA['EMA16'])
-    plt.plot(df_EMA['DIS'])
-    plt.legend(["EMA50", "EMA16", "DIS"])
-    plt.show()
-    

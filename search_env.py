@@ -1,11 +1,13 @@
 from TabularQLearner import TabularQLearner
+import IndicatorRetrieval as ir
 import argparse
 import tech_ind
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-class StockEnvironment:
+
+class SearchEnvironment:
     def __init__ (self, fixed = None, floating = None, starting_cash = None, share_limit = None):
         self.shares = share_limit
         self.fixed_cost = fixed
@@ -26,8 +28,13 @@ class StockEnvironment:
         df = df.rename(columns={"Adj Close": symbol})
         df = tech_ind.MACDIndicator(df, symbol)
         df = tech_ind.RSIIndicator(df, symbol)
-        df = tech_ind.Lobbying(df, symbol, lobbyingWindow)
-        #insert indicator for Lobbying Data
+
+
+        #THIS IS NOT WORKING
+        indicator_data = ir.get_data(start_date, end_date, symbol)
+        df = tech_ind.LobbyingIndicator(indicator_data, lobbyingWindow)
+
+        #THIS IS NOT WORKING
         df = df[[symbol, "MACD", "RSI", "Lobbying"]]
         df["RSIQuantile"] = pd.qcut(df["RSI"], 4,labels=["0", "1", "2", "3"])
         df["MACDQuantile"] = pd.qcut(df["MACD"], 4, labels=["0", "1", "2", "3"])
@@ -51,7 +58,7 @@ class StockEnvironment:
         state = int(strnum)
         return state
 
-    def train_learner(self, start = None, end = None, symbol = None, trips = 0, dyna = 0, eps = 0.0, eps_decay = 0.0):
+    def train_learner(self, start = None, end = None, symbol = None, trips = 0, window = 5, dyna = 0, eps = 0.0, eps_decay = 0.0):
         """
         Construct a Q-Learning trader and train it through many iterations of a stock
         world. Store the trained learner in an instance variable for testing.
@@ -61,7 +68,7 @@ class StockEnvironment:
         """
         #update number of states to reflect states
         self.QTrader = TabularQLearner(133333, 3, epsilon=eps, epsilon_decay=eps_decay, dyna=dyna)
-        world_df = self.prepare_world(start, end, symbol, "./data")
+        world_df = self.prepare_world(start, end, symbol, "./data", window)
         first_day = world_df.index[0]
         start_state = self.calc_state(world_df, first_day, 0)
         cur_port_val = self.starting_cash
@@ -136,7 +143,7 @@ class StockEnvironment:
 
         return 
 
-    def test_learner(self, start = None, end = None, symbol = None):
+    def test_learner(self, start = None, end = None, symbol = None, lobbyingWindow = None):
         """
         Evaluate a trained Q-Learner on a particular stock trading task.
         Print a summary result of what happened during the test.
@@ -144,7 +151,7 @@ class StockEnvironment:
         Test trip, net result: $31710.00
         Benchmark result: $6690.0000
         """
-        world_df = self.prepare_world(start, end, symbol, "./data")
+        world_df = self.prepare_world(start, end, symbol, "./data", lobbyingWindow)
         first_day = world_df.index[0]
         start_state = self.calc_state(world_df, first_day, 0)
         cur_port_val = self.starting_cash
@@ -214,125 +221,6 @@ class StockEnvironment:
         #plt.show()
         return
     
-    def gridworld(self, start, end, sym, datafolder): 
-
-        def prepare_world_grid (self, start_date, end_date, symbol, data_folder, lobbyingWindow):
-            """
-            Read the relevant price data and calculate some indicators.
-            Return a DataFrame containing everything you need.
-            """
-            dates = pd.date_range(start_date, end_date)
-            df = pd.DataFrame(index=dates)
-            df_symbol = pd.read_csv(f'{data_folder}/' + symbol + '.csv', index_col=['Date'], parse_dates=True, na_values=['nan'], usecols=['Date',"Adj Close"])
-            df = df.join(df_symbol, how="inner")
-            df = df.rename(columns={"Adj Close": symbol})
-            df = tech_ind.Lobbying(df, symbol, lobbyingWindow)
-            #insert indicator for Lobbying Data
-            df = df[[symbol, "Lobbying"]]
-            df["Lobbying"] = pd.qcut(df["Lobbying"], 4, labels=["0", "1", "2", "3"])
-            self.df = df
-            df = df.ffill().bfill()
-            return df
-        
-        def calc_state_grid(self, df, day, holdings):
-            """ Quantizes the state to a single number. """
-            lobbying = df.at[day, "LobbyingQuantile"]
-            if holdings < 0:
-                hold = "0"
-            elif holdings > 0:
-                hold = "2"
-            else:
-                hold = "1"
-            strnum = "1" + lobbying + hold 
-            state = int(strnum)
-            return state
-        
-        def train_learner(self, start = None, end = None, symbol = None, trips = 0, dyna = 0, eps = 0.0, eps_decay = 0.0):
-            """
-            Construct a Q-Learning trader and train it through many iterations of a stock
-            world. Store the trained learner in an instance variable for testing.
-            Print a summary result of what happened at the end of each trip.
-            Feel free to include portfolio stats or other information, but AT LEAST:
-            Trip 499 net result: $13600.00
-            """
-            #update number of states to reflect states
-            self.QTrader = TabularQLearner(133333, 3, epsilon=eps, epsilon_decay=eps_decay, dyna=dyna)
-            world_df = self.prepare_world_grid(start, end, symbol, "./data")
-            first_day = world_df.index[0]
-            start_state = self.calc_state_grid(world_df, first_day, 0)
-            cur_port_val = self.starting_cash
-            for i in range(trips):
-                action = self.QTrader.test(start_state)
-                prev_date = first_day
-                prev_holding = 0
-                cash = self.starting_cash
-                for date in world_df.index:
-                    if date == first_day:
-                        continue
-                    prev_cash = cash
-                    price = self.shares * world_df[symbol].loc[date]
-                    if action == 0:
-                        #action is SHORT
-                        holdings = -1 * self.shares
-                        if prev_holding == 0:
-                            #if prev position is FLAT, add shares to cash
-                            cash += price
-                            cash -= (price * self.floating_cost) + self.fixed_cost
-                        elif prev_holding > 0:
-                            #if prev position is LONG, add double shares to cash 
-                            cash += price * 2
-                            cash -= (price * self.floating_cost * 2) + self.fixed_cost
-                    elif action == 1:
-                        #action is FLAT
-                        holdings = 0
-                        if prev_holding > 0:
-                            #if prev position is LONG, add shares to cash
-                            cash += price
-                        elif prev_holding < 0:
-                            #if prev position is SHORT, substract purchased shares from cash
-                            cash -= price
-                        if prev_holding != 0:
-                            cash -= (price * self.floating_cost) + self.fixed_cost
-                    else:
-                        #action is LONG
-                        holdings = self.shares
-                        if prev_holding == 0:
-                            #if prev position is FLAT, subtract purchased shares from cash
-                            cash -= price
-                            cash -= (price * self.floating_cost) + self.fixed_cost
-                        elif prev_holding < 0:
-                            #if prev position is SHORT, subtract double purchased shares from cash
-                            cash -= price * 2
-                            cash -= (price * self.floating_cost * 2) + self.fixed_cost
-                    sPrime = self.calc_state(world_df, date, holdings)
-                    prev_price = world_df[symbol].loc[prev_date]
-
-                    cur_port_val = holdings * world_df[symbol].loc[date] + cash
-                    prev_port_val = prev_holding * prev_price + prev_cash
-
-                    reward = cur_port_val - prev_port_val
-
-                    if action == 0 and prev_holding < 0:
-                        if price < prev_price:
-                            reward += (prev_price - price) / 8000
-                            #why 8000?
-                        else:
-                            reward += (price - prev_price) / 8000
-                    elif action == 2 and prev_holding > 0:
-                        if price > prev_price:
-                            reward += (price - prev_price) / 8000
-                        else:
-                            reward += (prev_price - price) / 8000
-                    
-                    action = self.QTrader.train(sPrime, reward)
-                    prev_holding = holdings
-                    prev_date = date
-                print("After " + str(i) + " trips, the net gain is " + str(cur_port_val - self.starting_cash))
-                print("Cumulative Returns: " + str(cur_port_val / self.starting_cash - 1))
-            #call train, test for many different values, find greatest cumulative return out of all of them to use
-
-            return cur_port_val / self.starting_cash - 1
-
         
         
 
@@ -364,7 +252,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     # Create an instance of the environment class.
-    env = StockEnvironment(fixed = args.fixed, floating = args.floating, starting_cash = args.cash, share_limit = args.shares)
+    env = SearchEnvironment(fixed = args.fixed, floating = args.floating, starting_cash = args.cash, share_limit = args.shares)
 
     # Construct, train, and store a Q-learning trader.
     env.train_learner(start = args.train_start, end = args.train_end, symbol = args.symbol, trips = args.trips, dyna = args.dyna,
@@ -372,7 +260,7 @@ if __name__ == '__main__':
 
     # Test the learned policy and see how it does.
     # In sample.
-    env.test_learner(start = args.train_start, end = args.train_end, symbol = args.symbol)
+    env.test_learner(start = args.train_start, end = args.train_end, symbol = args.symbol, lobbyingWindow = 5)
 
     # Out of sample. Only do this once you are fully satisfied with the in sample performance!
     env.test_learner(start = args.test_start, end = args.test_end, symbol = args.symbol)
