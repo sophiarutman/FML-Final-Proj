@@ -14,7 +14,7 @@ class StockEnvironment:
         self.df = pd.DataFrame()
         self.QTrader = None
 
-    def prepare_world (self, start_date, end_date, symbol, data_folder):
+    def prepare_world (self, start_date, end_date, symbol, data_folder, lobbyingWindow):
         """
         Read the relevant price data and calculate some indicators.
         Return a DataFrame containing everything you need.
@@ -26,12 +26,12 @@ class StockEnvironment:
         df = df.rename(columns={"Adj Close": symbol})
         df = tech_ind.MACDIndicator(df, symbol)
         df = tech_ind.RSIIndicator(df, symbol)
-        df = tech_ind.Lobbying(df, symbol)
+        df = tech_ind.Lobbying(df, symbol, lobbyingWindow)
         #insert indicator for Lobbying Data
         df = df[[symbol, "MACD", "RSI", "Lobbying"]]
         df["RSIQuantile"] = pd.qcut(df["RSI"], 4,labels=["0", "1", "2", "3"])
         df["MACDQuantile"] = pd.qcut(df["MACD"], 4, labels=["0", "1", "2", "3"])
-        df["Lobbying"] = pd.qcut(df["MACD"], 4, labels=["0", "1", "2", "3"])
+        df["Lobbying"] = pd.qcut(df["Lobbying"], 4, labels=["0", "1", "2", "3"])
         self.df = df
         df = df.ffill().bfill()
         return df
@@ -40,7 +40,7 @@ class StockEnvironment:
         """ Quantizes the state to a single number. """
         rsi = df.at[day, "RSIQuantile"]
         macd = df.at[day, "MACDQuantile"]
-        lobbying = df.at[day, "Lobbying Quantile"]
+        lobbying = df.at[day, "LobbyingQuantile"]
         if holdings < 0:
             hold = "0"
         elif holdings > 0:
@@ -213,6 +213,131 @@ class StockEnvironment:
         #plt.legend([symbol, "Portfolio"])
         #plt.show()
         return
+    
+    def gridworld(self, start, end, sym, datafolder): 
+
+        def prepare_world_grid (self, start_date, end_date, symbol, data_folder, lobbyingWindow):
+            """
+            Read the relevant price data and calculate some indicators.
+            Return a DataFrame containing everything you need.
+            """
+            dates = pd.date_range(start_date, end_date)
+            df = pd.DataFrame(index=dates)
+            df_symbol = pd.read_csv(f'{data_folder}/' + symbol + '.csv', index_col=['Date'], parse_dates=True, na_values=['nan'], usecols=['Date',"Adj Close"])
+            df = df.join(df_symbol, how="inner")
+            df = df.rename(columns={"Adj Close": symbol})
+            df = tech_ind.Lobbying(df, symbol, lobbyingWindow)
+            #insert indicator for Lobbying Data
+            df = df[[symbol, "Lobbying"]]
+            df["Lobbying"] = pd.qcut(df["Lobbying"], 4, labels=["0", "1", "2", "3"])
+            self.df = df
+            df = df.ffill().bfill()
+            return df
+        
+        def calc_state_grid(self, df, day, holdings):
+            """ Quantizes the state to a single number. """
+            lobbying = df.at[day, "LobbyingQuantile"]
+            if holdings < 0:
+                hold = "0"
+            elif holdings > 0:
+                hold = "2"
+            else:
+                hold = "1"
+            strnum = "1" + lobbying + hold 
+            state = int(strnum)
+            return state
+        
+        def train_learner(self, start = None, end = None, symbol = None, trips = 0, dyna = 0, eps = 0.0, eps_decay = 0.0):
+            """
+            Construct a Q-Learning trader and train it through many iterations of a stock
+            world. Store the trained learner in an instance variable for testing.
+            Print a summary result of what happened at the end of each trip.
+            Feel free to include portfolio stats or other information, but AT LEAST:
+            Trip 499 net result: $13600.00
+            """
+            #update number of states to reflect states
+            self.QTrader = TabularQLearner(133333, 3, epsilon=eps, epsilon_decay=eps_decay, dyna=dyna)
+            world_df = self.prepare_world_grid(start, end, symbol, "./data")
+            first_day = world_df.index[0]
+            start_state = self.calc_state_grid(world_df, first_day, 0)
+            cur_port_val = self.starting_cash
+            for i in range(trips):
+                action = self.QTrader.test(start_state)
+                prev_date = first_day
+                prev_holding = 0
+                cash = self.starting_cash
+                for date in world_df.index:
+                    if date == first_day:
+                        continue
+                    prev_cash = cash
+                    price = self.shares * world_df[symbol].loc[date]
+                    if action == 0:
+                        #action is SHORT
+                        holdings = -1 * self.shares
+                        if prev_holding == 0:
+                            #if prev position is FLAT, add shares to cash
+                            cash += price
+                            cash -= (price * self.floating_cost) + self.fixed_cost
+                        elif prev_holding > 0:
+                            #if prev position is LONG, add double shares to cash 
+                            cash += price * 2
+                            cash -= (price * self.floating_cost * 2) + self.fixed_cost
+                    elif action == 1:
+                        #action is FLAT
+                        holdings = 0
+                        if prev_holding > 0:
+                            #if prev position is LONG, add shares to cash
+                            cash += price
+                        elif prev_holding < 0:
+                            #if prev position is SHORT, substract purchased shares from cash
+                            cash -= price
+                        if prev_holding != 0:
+                            cash -= (price * self.floating_cost) + self.fixed_cost
+                    else:
+                        #action is LONG
+                        holdings = self.shares
+                        if prev_holding == 0:
+                            #if prev position is FLAT, subtract purchased shares from cash
+                            cash -= price
+                            cash -= (price * self.floating_cost) + self.fixed_cost
+                        elif prev_holding < 0:
+                            #if prev position is SHORT, subtract double purchased shares from cash
+                            cash -= price * 2
+                            cash -= (price * self.floating_cost * 2) + self.fixed_cost
+                    sPrime = self.calc_state(world_df, date, holdings)
+                    prev_price = world_df[symbol].loc[prev_date]
+
+                    cur_port_val = holdings * world_df[symbol].loc[date] + cash
+                    prev_port_val = prev_holding * prev_price + prev_cash
+
+                    reward = cur_port_val - prev_port_val
+
+                    if action == 0 and prev_holding < 0:
+                        if price < prev_price:
+                            reward += (prev_price - price) / 8000
+                            #why 8000?
+                        else:
+                            reward += (price - prev_price) / 8000
+                    elif action == 2 and prev_holding > 0:
+                        if price > prev_price:
+                            reward += (price - prev_price) / 8000
+                        else:
+                            reward += (prev_price - price) / 8000
+                    
+                    action = self.QTrader.train(sPrime, reward)
+                    prev_holding = holdings
+                    prev_date = date
+                print("After " + str(i) + " trips, the net gain is " + str(cur_port_val - self.starting_cash))
+                print("Cumulative Returns: " + str(cur_port_val / self.starting_cash - 1))
+            #call train, test for many different values, find greatest cumulative return out of all of them to use
+
+        return 
+
+        
+        
+
+
+
         
 if __name__ == '__main__':
     # Load the requested stock for the requested dates, instantiate a Q-Learning agent,
