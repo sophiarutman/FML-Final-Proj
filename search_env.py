@@ -39,7 +39,9 @@ class SearchEnvironment:
         df["RSIQuantile"] = pd.qcut(df["RSI"], 4,labels=["0", "1", "2", "3"])
         df["MACDQuantile"] = pd.qcut(df["MACD"], 4, labels=["0", "1", "2", "3"])
         df['Lobbying'].replace(to_replace=0, value=np.nan, inplace=True)
+        #print(df.to_string())
         df["LobbyingQuantile"] = pd.qcut(df['Lobbying'], 3, labels=[ "1", "2", "3"])
+        #print(df.to_string())
         df['LobbyingQuantile'].replace(to_replace=-1, value=0, inplace=True)
         self.df = df
         df = df.ffill().bfill()
@@ -140,10 +142,10 @@ class SearchEnvironment:
                 action = self.QTrader.train(sPrime, reward)
                 prev_holding = holdings
                 prev_date = date
-            print("After " + str(i) + " trips, the net gain is " + str(cur_port_val - self.starting_cash))
-            print("Cumulative Returns: " + str(cur_port_val / self.starting_cash - 1))
+            #print("After " + str(i) + " trips, the net gain is " + str(cur_port_val - self.starting_cash))
+        print("Cumulative Returns of Window " + str(window) + ":" + str(cur_port_val / self.starting_cash - 1))
 
-        return 
+        return cur_port_val / self.starting_cash - 1
 
     def test_learner(self, start = None, end = None, symbol = None, lobbyingWindow = None):
         """
