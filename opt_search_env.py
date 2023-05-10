@@ -31,18 +31,17 @@ class SearchEnvironment:
 
         indicator_data = ir.get_data(start_date, end_date, symbol)
         df = tech_ind.LobbyingIndicator(df, indicator_data, symbol, lobbyingWindow)
-
+        
         df = df[[symbol, "MACD", "RSI", "Lobbying"]]
         df["RSIQuantile"] = pd.qcut(df["RSI"], 4,labels=["0", "1", "2", "3"])
         df["MACDQuantile"] = pd.qcut(df["MACD"], 4, labels=["0", "1", "2", "3"])
         df['Lobbying'].replace(to_replace=0, value=np.nan, inplace=True)
+        #print(df.to_string())
         df["LobbyingQuantile"] = pd.qcut(df['Lobbying'], 3, labels=[ "1", "2", "3"])
-        df["LobbyingQuantile"] = df["LobbyingQuantile"].cat.add_categories(0)
-        df["LobbyingQuantile"].fillna(0, inplace=True)
-        
+        #print(df.to_string())
+        df['LobbyingQuantile'].replace(to_replace=-1, value=0, inplace=True)
         self.df = df
         df = df.ffill().bfill()
-        
         return df
 
     def calc_state (self, df, day, holdings):
@@ -56,7 +55,7 @@ class SearchEnvironment:
             hold = "2"
         else:
             hold = "1"
-        strnum = "1" + rsi + macd + str(lobbying) + hold 
+        strnum = "1" + rsi + macd + lobbying + hold 
         state = int(strnum)
         return state
 
@@ -141,7 +140,7 @@ class SearchEnvironment:
                 prev_holding = holdings
                 prev_date = date
             #print("After " + str(i) + " trips, the net gain is " + str(cur_port_val - self.starting_cash))
-        print("Cumulative Returns of Window " + str(window) + ":" + str(cur_port_val / self.starting_cash - 1))
+        print("Cumulative Returns of Window " + str(window) + ": " + str(cur_port_val / self.starting_cash - 1))
 
         return cur_port_val / self.starting_cash - 1
 
