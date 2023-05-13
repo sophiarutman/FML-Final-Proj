@@ -40,7 +40,7 @@ if __name__ == '__main__':
 
     results = {}
 
-    symbols = ["AMZN","META","CMCSA","GOOGL","BA","LMT","T","NOC",'RTX',"ABT"]
+    symbols = ["AMZN","FB","CMCSA","GOOGL","BA","LMT","T","NOC",'RTX',"ABT"]
 
     for sym in symbols:
         print(sym)

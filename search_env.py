@@ -141,7 +141,7 @@ class SearchEnvironment:
                 prev_holding = holdings
                 prev_date = date
             #print("After " + str(i) + " trips, the net gain is " + str(cur_port_val - self.starting_cash))
-        print("Cumulative Returns of Window " + str(window) + ":" + str(cur_port_val / self.starting_cash - 1))
+            #print("Cumulative Returns of Window " + str(window) + ":" + str(cur_port_val / self.starting_cash - 1))
 
         return cur_port_val / self.starting_cash - 1
 
