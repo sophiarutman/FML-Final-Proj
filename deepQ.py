@@ -102,21 +102,20 @@ class DeepQ():
         df = df.ffill().bfill()
         return df[symbol]
 
-    def state_creator(self, data, timestep, window_size):
-        starting_id = timestep - window_size + 1
-
-        if starting_id >= 0:
-            windowed_data = data[starting_id : timestep + 1]
+    def calc_state (self, df, day, holdings):
+        """ Quantizes the state to a single number. """
+        rsi = df.at[day, "RSIQuantile"]
+        macd = df.at[day, "MACDQuantile"]
+        lobbying = df.at[day, "LobbyingQuantile"]
+        if holdings < 0:
+            hold = "0"
+        elif holdings > 0:
+            hold = "2"
         else:
-            windowed_data = [data[0]] * abs(starting_id) + list(data[0 : timestep + 1])
-
-        state = []
-        for i in range(window_size - 1):
-            diff = windowed_data[i + 1] - windowed_data[i]
-            sigmoid = 1 / (1 + math.exp(-diff))
-            state.append(sigmoid)
-
-        return np.array([state])
+            hold = "1"
+        strnum = "1" + rsi + macd + lobbying + hold 
+        state = int(strnum)
+        return state
 
   
 if __name__ == '__main__':
@@ -137,26 +136,30 @@ if __name__ == '__main__':
   
         print("Episode: {}/{}".format(episode, episodes))
         
-        state = trader.state_creator(data, 0, window_size + 1)
+        state = trader.calc_state(data, data.index[0], 0)
         
         total_profit = 0
         trader.inventory = []
+
+        curHoldings = 0
         
-        for t in tqdm(range(data_samples)):
+        for t in range(data_samples):
             
             action = trader.trade(state)
             
-            next_state = trader.state_creator(data, t+1, window_size + 1)
+            next_state = trader.calc_state(data, data.index[t], curHoldings)
             reward = 0
             
             if action == 1: #Buying
                 trader.inventory.append(data[t])
                 print("AI Trader bought: ", trader.stocks_price_format(data[t]))
+                curHoldings = 1000
             
             elif action == 2 and len(trader.inventory) > 0: #Selling
                 buy_price = trader.inventory.pop(0)           
                 reward = max(data[t] - buy_price, 0)
                 total_profit += data[t] - buy_price
+                curHoldings = 1000
                 print("AI Trader sold: ", trader.stocks_price_format(data[t]), " Profit: " + trader.stocks_price_format(data[t] - buy_price) )
             
             if t == data_samples - 1:
