@@ -13,7 +13,7 @@ def formatPrice(n):
 def getStockDataDF(symbol, start_date, end_date, lobbyingWindow):
 	dates = pd.date_range(start_date, end_date)
 	df = pd.DataFrame(index=dates)
-	df_symbol = pd.read_csv(f'FML-Final-Proj/data/' + symbol + '.csv', index_col=['Date'], parse_dates=True, na_values=['nan'], usecols=['Date',"Adj Close"])
+	df_symbol = pd.read_csv(f'./data/' + symbol + '.csv', index_col=['Date'], parse_dates=True, na_values=['nan'], usecols=['Date',"Adj Close"])
 	df = df.join(df_symbol, how="inner")
 	df = df.rename(columns={"Adj Close": symbol})
 	df = tech_ind.MACDIndicator(df, symbol)
@@ -32,9 +32,11 @@ def sigmoid(x):
 
 # returns an an n-day state representation ending at time t
 def getState(data, t):
-	row = data[t:t + 1] 
+	row = data[t:t+1]
 	res = []
-	for val in row:
-		res.append(sigmoid(val))
+	for ind in row:
+		val = row[ind]
+		
+		res.append(sigmoid(val[0]))
 
 	return np.array([res])

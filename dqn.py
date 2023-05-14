@@ -23,22 +23,23 @@ class Agent:
         self.model = self._model() if not is_eval else load_model("models/" + model_name)
 
     def _model(self):
-        inputs = keras.Input(shape=(self.state_size,))
-        x = keras.layers.Dense(32, activation="relu")(inputs)
-        x = keras.layers.Dense(64, activation="relu")(x)
-        x = keras.layers.Dense(128, activation="relu")(x)
-        x = keras.layers.Dense(units=self.action_size, activation='linear')(x)
-        model = keras.Model(inputs=inputs, outputs=x)
-        model.compile(loss='mse', optimizer=keras.optimizers.Adam(lr=0.001))
+        model = tf.keras.models.Sequential()
+      
+        model.add(keras.layers.Dense(units = 8, input_shape=(None, 4)))
+        model.add(keras.layers.Dense(units=8, activation='relu'))
+        model.add(keras.layers.Dense(units=8, activation='relu'))
+        model.add(keras.layers.Dense(units=self.action_size, activation='linear'))
 
+        model.compile(loss='mse', optimizer=tf.keras.optimizers.Adam(lr=0.001))
         return model
 
     def act(self, state):
         if not self.is_eval and random.random() <= self.epsilon:
             return random.randrange(self.action_size)
-
+        print(state)
         options = self.model.predict(state)
         print(options)
+        print(np.argmax(options[0]))
         return np.argmax(options[0])
 
     def expReplay(self, batch_size):

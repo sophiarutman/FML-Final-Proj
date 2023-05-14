@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def get_data( start, end, symbol, data_file="FML-Final-Proj/lobbying.csv"):
+def get_data( start, end, symbol, data_file="/Users/jsoeder/Library/CloudStorage/OneDrive-BowdoinCollege/Desktop/FML/FML-Final-Proj/lobbying.csv"):
     # Construct an empty DataFrame with the requested date range.
     dates = pd.date_range(start, end)
     df = pd.DataFrame(index=dates)
