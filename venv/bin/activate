@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/Users/jsoeder/Library/CloudStorage/OneDrive-BowdoinCollege/Desktop/FML/venv"
+VIRTUAL_ENV="/Users/srutman/Library/CloudStorage/OneDrive-BowdoinCollege/Documents/Financial-Machine-Learning/FML-Final-Proj/venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
