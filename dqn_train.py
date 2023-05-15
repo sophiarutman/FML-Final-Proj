@@ -18,7 +18,7 @@ max_rsi =  max(data["RSI"])
 max_macd = max(data["MACD"])
 max_lobb = max(data["Lobbying"])
 
-l = len(data[symbol]) 
+l = len(data[symbol]) - 1
 batch_size = 16
 total_profit = 0
 
@@ -114,6 +114,11 @@ for e in range(episode_count):
 
 	if e % 10 == 0:
 		agent.model.save("models/model_ep" + str(e))
+
+if (action == 1):
+	total_profit += (price * 1000)
+elif (action == 2):
+	total_profit -= (price * 1000)
 
 print("--------------------------------")
 print("Total Profit: " + formatPrice(total_profit))
