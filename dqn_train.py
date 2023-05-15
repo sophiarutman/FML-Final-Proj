@@ -4,8 +4,8 @@ import sys
 
 
 
-symbol = "AMZN"
-window_size = 30
+symbol = "GOOGL"
+window_size = 45
 episode_count = 4
 start, end = "2018-01-01", "2020-12-31"
 
@@ -21,6 +21,7 @@ max_lobb = max(data["Lobbying"])
 l = len(data[symbol]) - 1
 batch_size = 16
 total_profit = 0
+final_profits = []
 
 for e in range(episode_count):
 	print("Episode " + str(e) + "/" + str(episode_count))
@@ -111,6 +112,8 @@ for e in range(episode_count):
 
 		if len(agent.memory) > batch_size:
 			agent.expReplay(batch_size)
+	
+	final_profits.append(total_profit)
 
 	if e % 10 == 0:
 		agent.model.save("models/model_ep" + str(e))
@@ -123,3 +126,6 @@ elif (action == 2):
 print("--------------------------------")
 print("Total Profit: " + formatPrice(total_profit))
 print("--------------------------------")
+
+for item in final_profits:
+	print(item)
