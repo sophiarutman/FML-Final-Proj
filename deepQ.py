@@ -32,9 +32,48 @@ class DeepQ():
         self.epsilon_decay = 0.995
 
     def model_builder(self):
+      
+      model = tf.keras.models.Sequential()
+      
+      model.add(tf.layers.Dense(units=32, activation='relu', input_size=4))
+      model.add(tf.layers.Dense(units=64, activation='relu'))
+      model.add(tf.layers.Dense(units=128, activation='relu'))
+      model.add(tf.layers.Dense(units=self.action_space, activation='linear'))
+
+    def model_builder(self):
+
+        inputLobbying= Input(shape=(1096,), name="Lobbying")
+        inputRSI = Input(shape=(756,), name="RSI")
+        inputMACD = Input(shape=(756,), name="MACD")
+        inputActions = Input(shape=(756,), name="Actions")
         
-        model = keras.models.Sequential()
-        
+
+        x = Dense(64, activation="relu")(inputLobbying)
+        x = Dense(32, activation="relu")(x)
+        x = Dense(4, activation="relu")(x)
+        x = Model(inputs=inputLobbying, outputs=x)
+
+
+        y = Dense(64, activation="relu")(inputRSI)
+        y = Dense(32, activation="relu")(y)
+        y = Dense(4, activation="relu")(y)
+        y = Model(inputs=inputRSI, outputs=y)
+
+        z = Dense(64, activation="relu")(inputMACD)
+        z = Dense(32, activation="relu")(z)
+        z = Dense(4, activation="relu")(z)
+        z = Model(inputs=inputRSI, outputs=z)
+
+        a = Dense(64, activation="relu")(inputActions)
+        a = Dense(32, activation="relu")(a)
+        a = Dense(4, activation="relu")(a)
+        a = Model(inputs=inputRSI, outputs=a)
+
+        combined = concatenate([x.output, y.output, z.output, a.output])
+       
+      
+        model = Model(inputs=[x.input, y.input, z.input, a.input], outputs=z)
+                
         model.add(keras.layers.Dense(units=32, activation='relu', input_dim=self.states))
         model.add(keras.layers.Dense(units=64, activation='relu'))
         model.add(keras.layers.Dense(units=128, activation='relu'))
