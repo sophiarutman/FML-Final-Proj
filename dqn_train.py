@@ -33,16 +33,20 @@ for e in range(episode_count + 1):
 
 		reward = 0
 		price =  data[symbol].values[t]
+		holdings = 0
 
 		if action == 1: # buy
+			holdings = 1000
 			agent.inventory.append(price)
+			reward = max( - price, 0)
+			total_profit -= (price * 1000)
 			print("Buy: " + formatPrice(price))
 
 		elif action == 2 and len(agent.inventory) > 0: # sell
 			bought_price = agent.inventory.pop(0)
 			reward = max(price - bought_price, 0)
-			total_profit += price - bought_price
-			print("Sell: " + formatPrice(price) + " | Profit: " + formatPrice(price - bought_price))
+			total_profit += (price - bought_price) * 1000
+			print("Sell: " + formatPrice(price) + " | Profit: " + formatPrice(price - bought_price) * 1000)
 		
 		else:
 			print("Flat")
