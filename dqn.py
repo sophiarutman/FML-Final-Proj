@@ -1,14 +1,17 @@
 import tensorflow as tf
 from tensorflow import keras
 from keras.models import load_model
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.optimizers import Adam
 
 import numpy as np
 import random
 from collections import deque
 
 class Agent:
-    def __init__(self, state_size, is_eval=False, model_name=""):
-        self.state_size = state_size  # normalized previous days
+    def __init__(self, is_eval=False, model_name=""):
+        self.state_size = 5  # normalized previous days
         self.action_size = 3  # sit, buy, sell
         self.memory = deque(maxlen=1000)
         self.inventory = []
@@ -23,23 +26,20 @@ class Agent:
         self.model = self._model() if not is_eval else load_model("models/" + model_name)
 
     def _model(self):
-        model = tf.keras.models.Sequential()
       
-        model.add(keras.layers.Dense(units = 8, input_shape=(None, 4)))
-        model.add(keras.layers.Dense(units=8, activation='relu'))
-        model.add(keras.layers.Dense(units=8, activation='relu'))
-        model.add(keras.layers.Dense(units=self.action_size, activation='linear'))
+        model = Sequential()
+        model.add(Dense(units=64, input_dim=self.state_size, activation="relu"))
+        model.add(Dense(units=32, activation="relu"))
+        model.add(Dense(units=8, activation="relu"))
+        model.add(Dense(self.action_size, activation="linear"))
+        model.compile(loss="mse", optimizer=Adam(lr=0.001))
 
-        model.compile(loss='mse', optimizer=tf.keras.optimizers.Adam(lr=0.001))
         return model
 
     def act(self, state):
         if not self.is_eval and random.random() <= self.epsilon:
             return random.randrange(self.action_size)
-        print(state)
         options = self.model.predict(state)
-        print(options)
-        print(np.argmax(options[0]))
         return np.argmax(options[0])
 
     def expReplay(self, batch_size):

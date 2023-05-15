@@ -26,17 +26,21 @@ def getStockDataDF(symbol, start_date, end_date, lobbyingWindow):
 
 	return df
 
-# returns the sigmoid
-def sigmoid(x):
-	return 1 / (1 + math.exp(-x))
-
 # returns an an n-day state representation ending at time t
-def getState(data, t):
+def getState(data, symbol, t,  max_price, max_macd, max_rsi, max_lobb):
 	row = data[t:t+1]
 	res = []
-	for ind in row:
-		val = row[ind]
-		
-		res.append(sigmoid(val[0]))
+
+	price = row[symbol][0]
+	res.append(price / max_price)
+
+	macd = row["MACD"][0]
+	res.append(macd / max_macd)	
+
+	rsi = row["RSI"][0]
+	res.append(rsi / max_rsi)	
+
+	lobbying = row["Lobbying"][0]
+	res.append(lobbying / max_lobb)	
 
 	return np.array([res])

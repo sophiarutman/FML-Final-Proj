@@ -6,30 +6,38 @@ import sys
 
 symbol = "AMZN"
 window_size = 1
-episode_count = 1
+episode_count = 2
 start, end = "2018-01-01", "2020-12-31"
 
-
-agent = Agent(window_size)
+agent = Agent()
 
 data = getStockDataDF(symbol, start, end, window_size)
+
+max_price = max(data[symbol])
+max_rsi =  max(data["RSI"])
+max_macd = max(data["MACD"])
+max_lobb = max(data["Lobbying"])
+
 l = len(data[symbol]) - 1
-batch_size = 6
+batch_size = 16
 
 for e in range(episode_count + 1):
 	print("Episode " + str(e) + "/" + str(episode_count))
-	state = getState(data, 0)
+	state = getState(data, symbol, 0, max_price, max_macd, max_rsi, max_lobb)
 	state = np.append(state, 0)
+	state = np.expand_dims(state, axis=0)  # Add an extra dimension at axis=0
+
 
 	total_profit = 0
 	agent.inventory = []
 
 	for t in range(l):
-		print(t)
 		action = agent.act(state)
 
-		next_state = getState(data, t + 1)
+		next_state = getState(data, symbol, t + 1, max_price, max_macd, max_rsi, max_lobb)
 		next_state = np.append(next_state, action)
+		next_state = np.expand_dims(next_state, axis=0)  # Add an extra dimension at axis=0
+
 
 		reward = 0
 		price =  data[symbol].values[t]
@@ -44,8 +52,6 @@ for e in range(episode_count + 1):
 			total_profit += price - bought_price
 			print("Sell: " + formatPrice(price) + " | Profit: " + formatPrice(price - bought_price))
 		
-		else:
-			print("Flat")
 
 		done = True if t == l - 1 else False
 		agent.memory.append((state, action, reward, next_state, done))
@@ -61,3 +67,7 @@ for e in range(episode_count + 1):
 
 	if e % 10 == 0:
 		agent.model.save("models/model_ep" + str(e))
+
+print("--------------------------------")
+print("Total Profit: " + formatPrice(total_profit))
+print("--------------------------------")
