@@ -2,15 +2,12 @@ from dqn import Agent
 from dqn_functions import *
 import sys
 
-import cProfile
-cProfile.run("dqn_train.py",)
-
 
 
 symbol = "GOOGL"
 window_size = 45
-episode_count = 6
-start, end = "2018-01-01", "2018-12-31"
+episode_count = 20
+start, end = "2018-01-01", "2020-12-31"
 
 agent = Agent()
 
@@ -120,3 +117,5 @@ print("--------------------------------")
 
 for item in final_profits:
 	print(item)
+
+agent.model.save("models/model_ep" + str(e))
