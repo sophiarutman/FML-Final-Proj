@@ -36,7 +36,7 @@ class SearchEnvironment:
         df["RSIQuantile"] = pd.qcut(df["RSI"], 4,labels=["0", "1", "2", "3"])
         df["MACDQuantile"] = pd.qcut(df["MACD"], 4, labels=["0", "1", "2", "3"])
         df['Lobbying'].replace(to_replace=0, value=np.nan, inplace=True)
-        df["LobbyingQuantile"] = pd.qcut(df['Lobbying'], 2, labels=[ "1", "2"])
+        df["LobbyingQuantile"] = pd.qcut(df['Lobbying'], 3, labels=[ "0", "1", "2"])
         df["LobbyingQuantile"] = df["LobbyingQuantile"].cat.add_categories(0)
         df["LobbyingQuantile"].fillna(0, inplace=True)
         
@@ -147,7 +147,11 @@ class SearchEnvironment:
         world_df["BenchCash"] = bench_cash + world_df[symbol] * self.shares 
         world_df["CR"] = world_df["BenchCash"] / self.starting_cash - 1
         world_df["PORT_CR"] = world_df["PORT_CR"] / self.starting_cash - 1
+
+        print("Cumulative Returns: " + str(cur_port_val/self.starting_cash - 1))
+        print("Benchmark Returns: " + str(world_df["CR"].iloc[-1]))
         
+        """
         plt.figure(1)
         plt.suptitle("Q-Learner Performance Trading " + symbol + " vs. Buy and Hold Benchmark")
         plt.title("Floating Cost of " + str(self.floating_cost))
@@ -157,6 +161,7 @@ class SearchEnvironment:
         plt.ylabel("Cumulative Return")
         plt.legend([symbol, "Portfolio"])
         plt.show()
+        """
 
         return cur_port_val / self.starting_cash - 1
 
@@ -223,9 +228,9 @@ class SearchEnvironment:
         world_df["PORT_CR"] = world_df["PORT_CR"] / world_df.at[first_day, "PORT_CR"] - 1
 
 
-        """print("Testing... Net Gain is " + str(cur_port_val - self.starting_cash))
+        """print("Testing... Net Gain is " + str(cur_port_val - self.starting_cash))"""
         print("Cumulative Returns: " + str(cur_port_val/self.starting_cash - 1))
-        print("Benchmark Returns: " + str(world_df["CR"].iloc[-1]))"""
+        print("Benchmark Returns: " + str(world_df["CR"].iloc[-1]))
 
         """plt.figure(1)
         plt.suptitle("Q-Learner Performance Trading " + symbol + " vs. Buy and Hold Benchmark")
@@ -247,6 +252,17 @@ class SearchEnvironment:
 if __name__ == '__main__':
     # Load the requested stock for the requested dates, instantiate a Q-Learning agent,
     # and let it start trading.
+
+    """
+    Calculate Benchmark Returns:
+    """
+    env = SearchEnvironment(fixed = 9.95 , floating = 0.005, starting_cash = 200000, share_limit = 1000)
+    env.train_learner(start = "2018-01-01", end = "2020-12-31", symbol = "BA", trips = 500, eps = 0.99, eps_decay = 0.995)
+    env.test_learner(start = "2021-01-01", end = "2022-12-31", symbol = "BA", lobbyingWindow = 25)
+
+
+
+    """
     parser = argparse.ArgumentParser(description='Stock environment for Q-Learning.')
     date_args = parser.add_argument_group('date arguments')
     date_args.add_argument('--train_start', default='2018-01-01', metavar='DATE',help='Start of training period.')
@@ -281,3 +297,4 @@ if __name__ == '__main__':
 
     # Out of sample. Only do this once you are fully satisfied with the in sample performance!
     env.test_learner(start = args.test_start, end = args.test_end, symbol = args.symbol)
+    """
