@@ -36,7 +36,7 @@ class SearchEnvironment:
         df["RSIQuantile"] = pd.qcut(df["RSI"], 4,labels=["0", "1", "2", "3"])
         df["MACDQuantile"] = pd.qcut(df["MACD"], 4, labels=["0", "1", "2", "3"])
         df['Lobbying'].replace(to_replace=0, value=np.nan, inplace=True)
-        df["LobbyingQuantile"] = pd.qcut(df['Lobbying'], 4, labels=[ "1", "2", "3", "4"])
+        df["LobbyingQuantile"] = pd.qcut(df['Lobbying'], 2, labels=[ "1", "2"])
         df["LobbyingQuantile"] = df["LobbyingQuantile"].cat.add_categories(0)
         df["LobbyingQuantile"].fillna(0, inplace=True)
         
@@ -145,11 +145,8 @@ class SearchEnvironment:
             #print("Cumulative Returns of Window " + str(window) + ":" + str(cur_port_val / self.starting_cash - 1))
         bench_cash = self.starting_cash - self.shares * world_df.at[first_day, symbol]
         world_df["BenchCash"] = bench_cash + world_df[symbol] * self.shares 
-        print(world_df["BenchCash"])
-        world_df["CR"] = world_df["BenchCash"] / world_df["BenchCash"].loc[first_day] - 1
-        print(world_df["CR"])
-        world_df["PORT_CR"] = world_df["PORT_CR"] / world_df.at[first_day, "PORT_CR"] - 1
-        print(world_df["PORT_CR"])
+        world_df["CR"] = world_df["BenchCash"] / self.starting_cash - 1
+        world_df["PORT_CR"] = world_df["PORT_CR"] / self.starting_cash - 1
         
         plt.figure(1)
         plt.suptitle("Q-Learner Performance Trading " + symbol + " vs. Buy and Hold Benchmark")
