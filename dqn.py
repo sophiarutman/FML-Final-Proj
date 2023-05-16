@@ -26,13 +26,15 @@ class Agent:
         self.model = self._model() if not is_eval else load_model("models/" + model_name)
 
     def _model(self):
+
+        opt = tf.keras.optimizers.legacy.Adam(learning_rate=0.01)
       
         model = Sequential()
         model.add(Dense(units=64, input_dim=self.state_size, activation="relu"))
         model.add(Dense(units=32, activation="relu"))
         model.add(Dense(units=8, activation="relu"))
         model.add(Dense(self.action_size, activation="linear"))
-        model.compile(loss="mse", optimizer=Adam(lr=0.001))
+        model.compile(loss="mse", optimizer=opt)
 
         return model
 

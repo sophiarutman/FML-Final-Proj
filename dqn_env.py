@@ -6,8 +6,8 @@ from dqn_functions import *
 import sys
 
 symbol = "AMZN"
-window_size = 20
-episode_count = 5
+window_size = 30
+episode_count = 4
 start, end = "2020-01-01", "2022-12-31"
 model = load_model("models/" + symbol)
 
