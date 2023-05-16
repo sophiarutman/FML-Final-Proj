@@ -100,7 +100,7 @@ def assess_strategy(trade_df : pd.DataFrame, symbol, starting_value = 1000000,
     # ----------------------
     #Uncomment to show stats
     # ----------------------
-    #generate_stats(start, end, daily_portf_values.copy(), symbol)
+    generate_stats(start, end, daily_portf_values.copy(), symbol)
 
     return daily_portf_values
 

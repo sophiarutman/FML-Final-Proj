@@ -10,7 +10,7 @@ symbol = "GOOGL"
 window_size = 45
 start, end = "2020-01-01", "2022-12-31"
 
-model = load_model("models/model_ep0")
+model = load_model("/Users/jsoeder/Library/CloudStorage/OneDrive-BowdoinCollege/Desktop/FML/FML-Final-Proj/models/model_ep19")
 
 agent = Agent(True, symbol)
 
@@ -38,8 +38,8 @@ for row in data.iterrows():
 
 	# sit
 	next_state = getState(data, symbol, t + 1, max_price, max_macd, max_rsi, max_lobb)
-	state = np.append(state, 0)
-	state = np.expand_dims(state, axis=0)  # Add an extra dimension at axis=0
+	next_state = np.append(next_state, action)
+	next_state = np.expand_dims(next_state, axis=0)  # Add an extra dimension at axis=0
 
 	reward = 0
 	price =  data[symbol].values[t]
