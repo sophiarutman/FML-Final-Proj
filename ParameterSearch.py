@@ -20,7 +20,7 @@ class ParameterSearch:
             if cur_window == 0:
                 cur_window = 1
 
-            for i in range(5):
+            for j in range(5):
                 env = search_env.SearchEnvironment(fixed = 9.95, floating = 0.005, starting_cash = 200000, share_limit = 1000)
                 cr = env.train_learner(start = "2018-01-01", end = "2020-12-31", symbol = sym, trips = 500, window = cur_window, dyna = 0,
                     eps = 0.99, eps_decay = 0.99995)
