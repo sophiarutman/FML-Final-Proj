@@ -10,7 +10,7 @@ import random
 from collections import deque
 
 class Agent:
-    def __init__(self, is_eval=False, model_name="/Users/jsoeder/Library/CloudStorage/OneDrive-BowdoinCollege/Desktop/FML/FML-Final-Proj/models/model_ep19"):
+    def __init__(self, is_eval=False, model_name="GOOGL4520"):
         self.state_size = 5  # normalized previous days
         self.action_size = 3  # sit, buy, sell
         self.memory = deque(maxlen=1000)
@@ -23,7 +23,7 @@ class Agent:
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.995
 
-        self.model = self._model() if not is_eval else load_model("/Users/jsoeder/Library/CloudStorage/OneDrive-BowdoinCollege/Desktop/FML/FML-Final-Proj/models/model_ep19")
+        self.model = self._model() if not is_eval else load_model("models/" + model_name)
 
     def _model(self):
 

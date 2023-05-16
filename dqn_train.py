@@ -1,12 +1,14 @@
 from dqn import Agent
 from dqn_functions import *
 import sys
+import matplotlib.pyplot as plt
 
 
 
-symbol = "GOOGL"
-window_size = 45
-episode_count = 20
+
+symbol = "BA"
+window_size = 25
+episode_count = 5
 start, end = "2018-01-01", "2020-12-31"
 
 agent = Agent()
@@ -33,7 +35,7 @@ for e in range(episode_count):
 
 	total_profit = 0
 	agent.inventory = []
-	df = pd.DataFrame(index = data.index, column = ["CR", "PORTCR"])
+	df = pd.DataFrame(index = data.index, columns = ["CR", "PORTCR"])
 	for t in range(l):
 		action = agent.act(state)
 		
@@ -108,12 +110,16 @@ for e in range(episode_count):
 	
 	final_profits.append(total_profit)
 
-	df[]
 
 	if e % 10 == 0:
 		agent.model.save("models/model_ep" + str(e))
 
-
+	plt.figure(1)
+	plt.title("Deep-Q Performance Trading " + symbol)
+	plt.plot(df["CR"])
+	plt.xlabel("Date")
+	plt.ylabel("Return")
+	plt.show()
 
 print("--------------------------------")
 print("Total Profit: " + formatPrice(total_profit))
@@ -123,3 +129,5 @@ for item in final_profits:
 	print(item)
 
 agent.model.save("models/model_ep" + str(e))
+
+

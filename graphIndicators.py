@@ -55,4 +55,16 @@ def prepare_world (start_date, end_date, symbol, data_folder, lobbyingWindow):
         
     return df
 
-prepare_world("2018-01-01", "2022-12-31", "AMZN", "./data", 30)
+#prepare_world("2018-01-01", "2022-12-31", "AMZN", "./data", 30)
+
+lobbyingDays = 0
+lobbyingDaysList = []
+df = pd.read_csv('lobbying.csv', index_col=['Date'], parse_dates=True, na_values=['nan'])
+for col in df: 
+    for entry in df[col]: 
+        if entry != 0: 
+            lobbyingDays += 1
+    lobbyingDaysList.append(lobbyingDays)
+    lobbyingDays = 0
+
+print(lobbyingDaysList)
