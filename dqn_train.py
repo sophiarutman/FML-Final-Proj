@@ -33,7 +33,7 @@ for e in range(episode_count):
 
 	total_profit = 0
 	agent.inventory = []
-
+	df = pd.DataFrame(index = data.index, column = ["CR", "PORTCR"])
 	for t in range(l):
 		action = agent.act(state)
 		
@@ -98,6 +98,8 @@ for e in range(episode_count):
 
 		if len(agent.memory) > batch_size:
 			agent.expReplay(batch_size)
+		
+		df["CR"].iloc[t] = total_profit
 
 	if (action == 1):
 		total_profit += (price)
@@ -105,6 +107,8 @@ for e in range(episode_count):
 		total_profit -= (price )
 	
 	final_profits.append(total_profit)
+
+	df[]
 
 	if e % 10 == 0:
 		agent.model.save("models/model_ep" + str(e))
