@@ -2,12 +2,15 @@ from dqn import Agent
 from dqn_functions import *
 import sys
 
+import cProfile
+cProfile.run("dqn_train.py",)
+
 
 
 symbol = "GOOGL"
 window_size = 45
-episode_count = 4
-start, end = "2018-01-01", "2020-12-31"
+episode_count = 6
+start, end = "2018-01-01", "2018-12-31"
 
 agent = Agent()
 
@@ -19,7 +22,7 @@ max_macd = max(data["MACD"])
 max_lobb = max(data["Lobbying"])
 
 l = len(data[symbol]) - 1
-batch_size = 16
+batch_size = 4
 total_profit = 0
 final_profits = []
 
@@ -42,52 +45,50 @@ for e in range(episode_count):
 		next_state = np.append(next_state, action)
 		next_state = np.expand_dims(next_state, axis=0)  # Add an extra dimension at axis=0
 
-
-		reward = 0
 		price =  data[symbol].values[t]
+		reward = -1 * abs(last_price - price)
+		
 		holdings = 0
 
 		if action == 1 and pa != 1: #long
 			if pa == 0:
-				reward = 0
 				last_price = price
-				total_profit -= (price * 1000)
+				total_profit -= (price)
 				print("Buy at: " + formatPrice(price))
 			elif pa == 2:
-				reward = max(last_price - price, 0)
+				reward = last_price - price
 				# Short to Flat
-				total_profit -= (price * 1000)
+				total_profit -= (price)
 				# Flat to Long
-				total_profit -= (last_price * 1000)
+				total_profit -= (price)
 				last_price = price
 				print("Short to Long at: " + formatPrice(price))
 
 		elif action == 2 and pa != 2: # short
 			if pa == 0:
-				reward = 0
 				last_price = price
-				total_profit += (price * 1000)
+				total_profit += (price)
 				print("Short at: " + formatPrice(price))
 			elif pa == 1:
-				reward = max(price - last_price, 0)
+				reward = price - last_price
 				last_price = price
 				# Long to Flat
-				total_profit += (price * 1000)
+				total_profit += (price)
 				# Flat to Short
-				total_profit += (price * 1000)
+				total_profit += (price)
 				print("Long to Short at: " + formatPrice(price))
 		
 		elif action == 0 and pa != 0: #flat
 			if pa == 1: #Long to flat
-				reward = max(price - last_price, 0)
+				reward = price - last_price
 				# Long to Flat
-				total_profit += (price * 1000)
+				total_profit += (price)
 				print("Long to Flat at: " + formatPrice(price))
 
 			elif pa == 2: #Short to flat
-				reward = max(last_price - price, 0)
+				reward = last_price - price
 				# Short to Flat
-				total_profit -= (price * 1000)
+				total_profit -= (price)
 				print("Short to Flat at: " + formatPrice(price))
 
 		print("Profit: " + formatPrice(total_profit))
@@ -97,31 +98,21 @@ for e in range(episode_count):
 		agent.memory.append((state, action, reward, next_state, done))
 		state = next_state
 
-		if done:
-
-			if (action == 1):
-				total_profit += (price * 1000)
-			elif (action == 2):
-				total_profit -= (price * 1000)
-
-			print("--------------------------------")
-			print("Total Profit: " + formatPrice(total_profit))
-			print("--------------------------------")
-
-
 
 		if len(agent.memory) > batch_size:
 			agent.expReplay(batch_size)
+
+	if (action == 1):
+		total_profit += (price)
+	elif (action == 2):
+		total_profit -= (price )
 	
 	final_profits.append(total_profit)
 
 	if e % 10 == 0:
 		agent.model.save("models/model_ep" + str(e))
 
-if (action == 1):
-	total_profit += (price * 1000)
-elif (action == 2):
-	total_profit -= (price * 1000)
+
 
 print("--------------------------------")
 print("Total Profit: " + formatPrice(total_profit))
