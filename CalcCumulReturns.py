@@ -46,7 +46,7 @@ if __name__ == '__main__':
     raise ValueError(
     ValueError: Bin edges must be unique: array([ 500.,  500.,  750.,  750., 2500.])."""
     #{"AMZN": 30, "FB": 40, "CMCSA":40, "GOOGL":45, "BA":25, "LMT":40, "T":25, "NOC":15, "RTX":15, "ABT":35}
-    windowdict = {"AMZN": 30, "CMCSA":40, "GOOGL":45, "BA":25, "LMT":40, "T":25, "NOC":15, "RTX":15}
+    windowdict = {"FB":40, "ABT":35}
 
 
     for symWin in windowdict:
