@@ -36,7 +36,7 @@ class SearchEnvironment:
         df["RSIQuantile"] = pd.qcut(df["RSI"], 4,labels=["0", "1", "2", "3"])
         df["MACDQuantile"] = pd.qcut(df["MACD"], 4, labels=["0", "1", "2", "3"])
         df['Lobbying'].replace(to_replace=0, value=np.nan, inplace=True)
-        df["LobbyingQuantile"] = pd.qcut(df['Lobbying'], 3, labels=[ "1", "2", "3"])
+        df["LobbyingQuantile"] = pd.qcut(df['Lobbying'], 4, labels=[ "1", "2", "3", "4"])
         df["LobbyingQuantile"] = df["LobbyingQuantile"].cat.add_categories(0)
         df["LobbyingQuantile"].fillna(0, inplace=True)
         
@@ -122,6 +122,7 @@ class SearchEnvironment:
 
                 cur_port_val = holdings * world_df[symbol].loc[date] + cash
                 prev_port_val = prev_holding * prev_price + prev_cash
+                world_df.at[date, "PORT_CR"] = cur_port_val
 
                 reward = cur_port_val - prev_port_val
 
@@ -142,6 +143,23 @@ class SearchEnvironment:
                 prev_date = date
             #print("After " + str(i) + " trips, the net gain is " + str(cur_port_val - self.starting_cash))
             #print("Cumulative Returns of Window " + str(window) + ":" + str(cur_port_val / self.starting_cash - 1))
+        bench_cash = self.starting_cash - self.shares * world_df.at[first_day, symbol]
+        world_df["BenchCash"] = bench_cash + world_df[symbol] * self.shares 
+        print(world_df["BenchCash"])
+        world_df["CR"] = world_df["BenchCash"] / world_df["BenchCash"].loc[first_day] - 1
+        print(world_df["CR"])
+        world_df["PORT_CR"] = world_df["PORT_CR"] / world_df.at[first_day, "PORT_CR"] - 1
+        print(world_df["PORT_CR"])
+        
+        plt.figure(1)
+        plt.suptitle("Q-Learner Performance Trading " + symbol + " vs. Buy and Hold Benchmark")
+        plt.title("Floating Cost of " + str(self.floating_cost))
+        plt.plot(world_df["CR"])
+        plt.plot(world_df["PORT_CR"])
+        plt.xlabel("Date")
+        plt.ylabel("Cumulative Return")
+        plt.legend([symbol, "Portfolio"])
+        plt.show()
 
         return cur_port_val / self.starting_cash - 1
 
@@ -208,20 +226,20 @@ class SearchEnvironment:
         world_df["PORT_CR"] = world_df["PORT_CR"] / world_df.at[first_day, "PORT_CR"] - 1
 
 
-        print("Testing... Net Gain is " + str(cur_port_val - self.starting_cash))
+        """print("Testing... Net Gain is " + str(cur_port_val - self.starting_cash))
         print("Cumulative Returns: " + str(cur_port_val/self.starting_cash - 1))
-        print("Benchmark Returns: " + str(world_df["CR"].iloc[-1]))
+        print("Benchmark Returns: " + str(world_df["CR"].iloc[-1]))"""
 
-        #plt.figure(1)
-        #plt.suptitle("Q-Learner Performance Trading " + symbol + " vs. Buy and Hold Benchmark")
-        #plt.title("Floating Cost of " + str(self.floating_cost))
-        #plt.plot(world_df["CR"])
-        #plt.plot(world_df["PORT_CR"])
-        #plt.xlabel("Date")
-        #plt.ylabel("Cumulative Return")
-        #plt.legend([symbol, "Portfolio"])
-        #plt.show()
-        return
+        """plt.figure(1)
+        plt.suptitle("Q-Learner Performance Trading " + symbol + " vs. Buy and Hold Benchmark")
+        plt.title("Floating Cost of " + str(self.floating_cost))
+        plt.plot(world_df["CR"])
+        plt.plot(world_df["PORT_CR"])
+        plt.xlabel("Date")
+        plt.ylabel("Cumulative Return")
+        plt.legend([symbol, "Portfolio"])
+        plt.show()"""
+        return cur_port_val / self.starting_cash - 1
     
         
         
