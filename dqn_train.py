@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 
 
 
-symbol = "BA"
+symbol = "T"
 window_size = 25
-episode_count = 5
+episode_count = 10
 start, end = "2018-01-01", "2020-12-31"
 
 agent = Agent()
@@ -113,13 +113,14 @@ for e in range(episode_count):
 
 	if e % 10 == 0:
 		agent.model.save("models/model_ep" + str(e))
-
-	plt.figure(1)
-	plt.title("Deep-Q Performance Trading " + symbol)
-	plt.plot(df["CR"])
-	plt.xlabel("Date")
-	plt.ylabel("Return")
-	plt.show()
+	
+	if e == 9: 
+		plt.figure(1)
+		plt.title("Deep-Q Performance Trading " + symbol)
+		plt.plot(df["CR"])
+		plt.xlabel("Date")
+		plt.ylabel("Return")
+		plt.show()
 
 print("--------------------------------")
 print("Total Profit: " + formatPrice(total_profit))

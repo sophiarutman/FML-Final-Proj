@@ -60,11 +60,7 @@ def prepare_world (start_date, end_date, symbol, data_folder, lobbyingWindow):
 lobbyingDays = 0
 lobbyingDaysList = []
 df = pd.read_csv('lobbying.csv', index_col=['Date'], parse_dates=True, na_values=['nan'])
-for col in df: 
-    for entry in df[col]: 
-        if entry != 0: 
-            lobbyingDays += 1
-    lobbyingDaysList.append(lobbyingDays)
-    lobbyingDays = 0
+for col in df:         
+    lobbyingDaysList.append(df[col].sum())
 
 print(lobbyingDaysList)
