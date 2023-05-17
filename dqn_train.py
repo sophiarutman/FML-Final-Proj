@@ -112,7 +112,7 @@ for e in range(episode_count):
 
 
 	if e % 10 == 0:
-		agent.model.save("models/model_ep" + str(e))
+		agent.model.save("models/model_ep" + str(e) + symbol)
 	
 	if e == 9: 
 		plt.figure(1)
