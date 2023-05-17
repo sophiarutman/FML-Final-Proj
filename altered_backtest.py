@@ -45,24 +45,29 @@ def assess_strategy(trade_df : pd.DataFrame, symbol, starting_value = 1000000,
     trades = trade_df
     #create a dataframe to store share holdings
     dates = pd.date_range(start, end)
-    holdings = pd.DataFrame(index=dates)
-        
-    #initialize each symbol column to nans
-    holdings[symbol] = np.nan
-    #set the first value
-    holdings.loc[start][symbol] = 0
+    
     
     #Get stock data for the companies traded
     stock_data = get_data(start, end, symbol, column_name="Adj Close", 
             include_spy=False, data_folder="./data")
     #set up dataframes to deal with cash component
+    holdings = pd.DataFrame(index=stock_data.index)
+        
+    #initialize each symbol column to nans
+    holdings[symbol] = np.nan
+    #set the first value
+    start = str(stock_data.first_valid_index().date())
+    holdings.loc[start, symbol] = 0
+
+    
     stock_data['CASH'] = 1
     holdings['CASH'] = np.nan
-    holdings.loc[start]['CASH'] = starting_value
+    holdings.loc[start, 'CASH'] = starting_value
+    
 
     #initialize prev data to the initial values
-    prev_date = holdings.loc[start]
-    
+    prev_cash = holdings.loc[start, 'CASH'].copy()
+    prev_hold = holdings.loc[start, symbol].copy()
     #iterate over each trade
     for row in trades.iterrows():
         #extract features of the trade
@@ -70,28 +75,29 @@ def assess_strategy(trade_df : pd.DataFrame, symbol, starting_value = 1000000,
         shares = row[1]["Trades"]
         if shares > 0:
             direction = "BUY"
-        else: 
+        elif shares < 0: 
             direction = "SELL"
+        else:
+            direction = "FLAT"
         order_value = stock_data.loc[date][symbol] * shares
 
         #grab previous holding data
-        holdings.loc[date] = prev_date
+
+        holdings.loc[date, 'CASH'] = prev_cash
+        holdings.loc[date, symbol] = prev_hold
 
         #perform trade
         if  direction == "BUY":            
-            holdings.loc[date][symbol] += shares
-            holdings.loc[date]['CASH'] -= abs(order_value) 
-        else:
-            holdings.loc[date][symbol] += shares
-            holdings.loc[date]['CASH'] += abs(order_value)
+            holdings.loc[date, symbol] += shares
+            holdings.loc[date, 'CASH'] -= abs(order_value)
+        elif direction == "SELL":
+            holdings.loc[date, symbol] += shares
+            holdings.loc[date, 'CASH'] += abs(order_value)
 
-        #charge trading fees
-        holdings.loc[date]['CASH'] -= (order_value * floating_cost)
-        holdings.loc[date]['CASH'] -= (fixed_cost)
 
         #update previous date, note this will allow multiple trades per day
-        prev_date = holdings.loc[date]
-
+        prev_cash = holdings.loc[date, 'CASH'].copy()
+        prev_hold = holdings.loc[date, symbol].copy()
     #fill in days trades weren't made
     all_portfolio_values = (holdings.ffill().bfill() * stock_data).sum(axis=1)
     #remove days the market wasn't traded
@@ -100,7 +106,7 @@ def assess_strategy(trade_df : pd.DataFrame, symbol, starting_value = 1000000,
     # ----------------------
     #Uncomment to show stats
     # ----------------------
-    generate_stats(start, end, daily_portf_values.copy(), symbol)
+    #generate_stats(start, end, daily_portf_values.copy(), symbol)
 
     return daily_portf_values
 
