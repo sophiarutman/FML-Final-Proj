@@ -6,13 +6,13 @@ from dqn_functions import *
 import altered_backtest as ab
 import matplotlib.pyplot as plt
 
-symbol = "GOOGL"
-window_size = 45
+symbol = "CMCSA"
+window_size = 40
 start, end = "2021-01-01", "2022-01-25"
 
-model = load_model("/Users/jsoeder/Library/CloudStorage/OneDrive-BowdoinCollege/Desktop/FML/FML-Final-Proj/models/model_ep19")
+model = load_model("model_name")
 
-agent = Agent(True, symbol)
+agent = Agent(True)
 
 data = getStockDataDF(symbol, start, end, window_size)
 l = len(data[symbol]) - 1
@@ -105,15 +105,15 @@ baseline = pd.DataFrame(0, index=trades.index, columns=["Trades"])
 baseline["Trades"] = 0
 baseline["Trades"][0] = 1000
 
-dqn = (ab.assess_strategy(trades, symbol, starting_value = 1000000,
-        fixed_cost = 0.0, floating_cost = 0.000, start=start, end=end) / 1000000) -1
+dqn = (ab.assess_strategy(trades, symbol, starting_value = 200000,
+        fixed_cost = 0.0, floating_cost = 0.000, start=start, end=end) / 200000) -1
 print(dqn.to_string())
 
-base = (ab.assess_strategy(baseline, symbol, starting_value = 1000000,
-        fixed_cost = 0.0, floating_cost = 0.000, start=start, end=end) / 1000000 ) - 1
+base = (ab.assess_strategy(baseline, symbol, starting_value = 200000,
+        fixed_cost = 0.0, floating_cost = 0.000, start=start, end=end) / 200000) - 1
 print(base.to_string())
 plt.figure(1)
-plt.title('Deep Q Strategy vs. Baseline for GOOGL (45) Model with 20 episodes')
+plt.title('Deep Q Strategy vs. Baseline for CMCSA (40) Model with 1 episode')
 plt.xlabel("Date")
 plt.ylabel('Cumlative Return')
 plt.plot(dqn)

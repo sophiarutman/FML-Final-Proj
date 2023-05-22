@@ -1,14 +1,13 @@
 from dqn import Agent
 from dqn_functions import *
-import sys
 import matplotlib.pyplot as plt
 
 
 
 
-symbol = "T"
-window_size = 25
-episode_count = 10
+symbol = "CMCSA"
+window_size = 40
+episode_count = 4
 start, end = "2018-01-01", "2020-12-31"
 
 agent = Agent()
@@ -45,6 +44,7 @@ for e in range(episode_count):
 		next_state = np.expand_dims(next_state, axis=0)  # Add an extra dimension at axis=0
 
 		price =  data[symbol].values[t]
+		
 		reward = -1 * abs(last_price - price)
 		
 		holdings = 0
@@ -89,6 +89,11 @@ for e in range(episode_count):
 				# Short to Flat
 				total_profit -= (price)
 				print("Short to Flat at: " + formatPrice(price))
+		else:
+			if pa == 1:
+				reward = price - last_price
+			elif pa == 2:
+				reward = last_price - price
 
 		print("Profit: " + formatPrice(total_profit))
 		pa = action
@@ -111,16 +116,7 @@ for e in range(episode_count):
 	final_profits.append(total_profit)
 
 
-	if e % 10 == 0:
-		agent.model.save("models/model_ep" + str(e) + symbol)
-	
-	if e == 9: 
-		plt.figure(1)
-		plt.title("Deep-Q Performance Trading " + symbol)
-		plt.plot(df["CR"])
-		plt.xlabel("Date")
-		plt.ylabel("Return")
-		plt.show()
+	agent.model.save("models/model_ep" + str(e) + str(symbol) + str(window_size))
 
 print("--------------------------------")
 print("Total Profit: " + formatPrice(total_profit))
@@ -129,6 +125,6 @@ print("--------------------------------")
 for item in final_profits:
 	print(item)
 
-agent.model.save("models/model_ep" + str(e))
+
 
 
